@@ -11,7 +11,7 @@
 # This is free software, licensed under the MIT License.
 # See /LICENSE for more information.
 
-name: openwrt-22.03
+name: openwrt-builder
 
 on:
   workflow_call:
