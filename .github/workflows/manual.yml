@@ -1,0 +1,39 @@
+#
+# Copyright (c) 2023 VergilGao <https://catfight360.com>
+# ___      ___ _______   ________  ________  ___  ___       ________  ________  ________     
+# |\  \    /  /|\  ___ \ |\   __  \|\   ____\|\  \|\  \     |\   ____\|\   __  \|\   __  \    
+# \ \  \  /  / | \   __/|\ \  \|\  \ \  \___|\ \  \ \  \    \ \  \___|\ \  \|\  \ \  \|\  \   
+#  \ \  \/  / / \ \  \_|/_\ \   _  _\ \  \  __\ \  \ \  \    \ \  \  __\ \   __  \ \  \\\  \  
+#   \ \    / /   \ \  \_|\ \ \  \\  \\ \  \|\  \ \  \ \  \____\ \  \|\  \ \  \ \  \ \  \\\  \ 
+#    \ \__/ /     \ \_______\ \__\\ _\\ \_______\ \__\ \_______\ \_______\ \__\ \__\ \_______\
+#     \|__|/       \|_______|\|__|\|__|\|_______|\|__|\|_______|\|_______|\|__|\|__|\|_______|  
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+
+name: 编译固件或生成配置
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '选择配置'
+        type: choice
+        required: true
+        default: 'home'
+        options:
+          - home
+          - xiaomi-ac2100
+      firmware:
+        description: '编译固件还是生成配置文件'
+        type: boolean
+        required: true
+        default: 'false'
+
+jobs:
+  manual_run:
+    uses: ./.github/workflows/template.yml
+    with:
+      target: ${{ inputs.target }}
+      firmware: ${{ fromJSON(inputs.firmware) }}
+    secrets: inherit

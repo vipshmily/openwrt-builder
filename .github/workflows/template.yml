@@ -1,0 +1,118 @@
+#
+# Copyright (c) 2023 VergilGao <https://catfight360.com>
+# ___      ___ _______   ________  ________  ___  ___       ________  ________  ________     
+# |\  \    /  /|\  ___ \ |\   __  \|\   ____\|\  \|\  \     |\   ____\|\   __  \|\   __  \    
+# \ \  \  /  / | \   __/|\ \  \|\  \ \  \___|\ \  \ \  \    \ \  \___|\ \  \|\  \ \  \|\  \   
+#  \ \  \/  / / \ \  \_|/_\ \   _  _\ \  \  __\ \  \ \  \    \ \  \  __\ \   __  \ \  \\\  \  
+#   \ \    / /   \ \  \_|\ \ \  \\  \\ \  \|\  \ \  \ \  \____\ \  \|\  \ \  \ \  \ \  \\\  \ 
+#    \ \__/ /     \ \_______\ \__\\ _\\ \_______\ \__\ \_______\ \_______\ \__\ \__\ \_______\
+#     \|__|/       \|_______|\|__|\|__|\|_______|\|__|\|_______|\|_______|\|__|\|__|\|_______|  
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+
+name: openwrt-22.03
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: '选择配置'
+        type: string
+        required: true
+      firmware:
+        description: '编译固件还是生成配置文件'
+        type: boolean
+        required: true
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  openwrt:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: 初始化编译环境
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install $(cat depends-ubuntu-2204)
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        TARGET=$GITHUB_WORKSPACE/${{ inputs.target }}
+        REPO_URL=`sed '/^url=/!d;s/.*=//' $TARGET/repo`
+        REPO_BRANCH=`sed '/^branch=/!d;s/.*=//' $TARGET/repo`
+        git clone $REPO_URL -b $REPO_BRANCH /workdir/openwrt
+        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        cd $GITHUB_WORKSPACE/openwrt
+        [ -f $TARGET/feeds.conf ] && mv $TARGET/feeds.conf ./feeds.conf.default || true
+        [ -f $TARGET/part1.sh ] && chmod +x $TARGET/part1.sh && $TARGET/part1.sh || true
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+        [ -d $TARGET/files ] && mv $TARGET/files ./files || true
+        [ -f $TARGET/seed.config ] && mv $TARGET/seed.config .config || true
+        [ -f $TARGET/part2.sh ] && chmod +x $TARGET/part2.sh && $TARGET/part2.sh || true
+        unset TARGET
+        echo "FILE_NAME=${{ inputs.target }}-$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: SSH connection to Actions
+      if: ${{ !fromJSON(inputs.firmware) && !cancelled() }}
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true
+
+    - name: 编译固件
+      if: ${{ fromJSON(inputs.firmware) && !cancelled() }}
+      id: build_firmware
+      run: |
+        cd openwrt
+        make defconfig
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 || make -j1 V=s
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        mkdir -p /tmp/upload/firmware
+        mv ./* /tmp/upload/firmware
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: 上传固件
+      uses: actions/upload-artifact@main
+      if: ${{ steps.build_firmware.outputs.status == 'success' && !cancelled() }}
+      with:
+        name: openwrt-firmware-${{ env.FILE_NAME }}
+        path: /tmp/upload/firmware
+
+    - name: 组织配置文件
+      if: ${{ !fromJSON(inputs.firmware) && !cancelled() }}
+      id: organize_config
+      run: |
+        cd openwrt
+        rm -f .config.old
+        make defconfig
+        mkdir -p /tmp/upload/config
+        ./scripts/diffconfig.sh > /tmp/upload/config/${{ env.FILE_NAME }}.config
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: 上传配置文件
+      if: ${{ steps.organize_config.outputs.status == 'success' && !cancelled() }}
+      uses: actions/upload-artifact@main
+      with:
+        name: openwrt-config-${{ env.FILE_NAME }}
+        path: /tmp/upload/config
+
+    - name: 删除旧的 workflow 运行记录
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 90
