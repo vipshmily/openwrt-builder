@@ -1,6 +1,21 @@
 # OpenWrt Builder
 
-使用 github actions 自动化编译 OpenWrt 系统。
+懒人版编译 OpenWrt 系统。
+
+此项目提供了两种编译方案
+
+- 使用 github actions 自动化
+- 使用 build.sh 手动运行编译
+
+## github actions
+
+此方案与其他云编译方案类似
+
+## build.sh
+
+此方案提供了一个简单的脚本，运行此脚本将根据提供的配置自动拉去源码并进行编译，如果没有提供编译配置，将自动进入 make menuconfig 界面，同时你也可以提供 seed.config 文件，在此文件基础上修改生成新的编译配置。
+
+此方案提供了一个简单的办法，使得重复运行不会重新拉取源码，从而加速第二次编译，方便前期编译时反复修改配置。
 
 ## 致谢
 

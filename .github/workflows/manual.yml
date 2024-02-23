@@ -23,12 +23,11 @@ on:
         default: 'home'
         options:
           - home
-          - xiaomi-ac2100
       firmware:
         description: '编译固件还是生成配置文件'
         type: boolean
         required: true
-        default: 'false'
+        default: false
 
 jobs:
   manual_run:

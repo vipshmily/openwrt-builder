@@ -37,6 +37,7 @@ jobs:
       uses: actions/checkout@main
 
     - name: 初始化编译环境
+      id: init
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -62,7 +63,7 @@ jobs:
         [ -f $TARGET/seed.config ] && mv $TARGET/seed.config .config || true
         [ -f $TARGET/part2.sh ] && chmod +x $TARGET/part2.sh && $TARGET/part2.sh || true
         unset TARGET
-        echo "FILE_NAME=${{ inputs.target }}-$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+        echo "filename=${{ inputs.target }}-$(date +"%Y%m%d%H%M")" >> $GITHUB_OUTPUT
 
     - name: SSH connection to Actions
       if: ${{ !fromJSON(inputs.firmware) && !cancelled() }}
@@ -91,7 +92,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: ${{ steps.build_firmware.outputs.status == 'success' && !cancelled() }}
       with:
-        name: openwrt-firmware-${{ env.FILE_NAME }}
+        name: openwrt-firmware-${{ steps.init.outputs.filename }}
         path: /tmp/upload/firmware
 
     - name: 组织配置文件
@@ -102,14 +103,14 @@ jobs:
         rm -f .config.old
         make defconfig
         mkdir -p /tmp/upload/config
-        ./scripts/diffconfig.sh > /tmp/upload/config/${{ env.FILE_NAME }}.config
+        ./scripts/diffconfig.sh > /tmp/upload/config/${{ steps.init.outputs.filename }}.config
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: 上传配置文件
       if: ${{ steps.organize_config.outputs.status == 'success' && !cancelled() }}
       uses: actions/upload-artifact@main
       with:
-        name: openwrt-config-${{ env.FILE_NAME }}
+        name: openwrt-config-${{ steps.init.outputs.filename }}
         path: /tmp/upload/config
 
     - name: 删除旧的 workflow 运行记录
