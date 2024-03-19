@@ -18,15 +18,17 @@ x86_64
 
 ## 内置软件
 
+- block-mount 挂载分区
 - cfdisk 世界上最好用的磁盘分区工具
 - docker docker-compose dockerd docker支持
+- git zsh 插件更新
+- haveged `docker-compose` 需要 1000 以上的随机熵，我们用 `haveged` 来确保这一点
 - htop 用于监控系统资源占用
 - nano-full 更友好的文本编辑器
 - unzip 常用的解压工具
 - wget-ssl 我比较习惯的下载工具
 - zoneinfo-all 全时区
 - zsh
-
 ## Luci 配置
 
 - luci-light 后端
@@ -41,7 +43,6 @@ x86_64
 - luci-app-nut UPS工具
 - luci-app-omcproxy omcproxy代理，用于iptv组播
 - luci-app-passwall2 出国
-- luci-app-smartdns smartdns
 - luci-app-udpxy iptv用
 - luci-app-upnp upnp
 - luci-app-wol WOL
