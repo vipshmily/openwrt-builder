@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Replace the official source package
+./scripts/feeds install -p vergilgao golang xray-core v2ray-geodata sing-box
+
 # replace default theme to argon
 rm -rf feeds/luci/themes/luci-theme-design/
 sed -i 's/luci-theme-bootstrap/luci-theme-design/' feeds/luci/collections/luci*/Makefile
