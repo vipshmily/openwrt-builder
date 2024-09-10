@@ -10,10 +10,10 @@ if [ ! -f ".buildopenwrt" ]; then
 fi
 
 repo_url=`sed '/^url=/!d;s/.*=//' ${CWD}/config/repo`
-repo_url=${repo_url-:"https://github.com/openwrt/openwrt"}
+repo_url=${repo_url-:"https://github.com/vipshmily/immortalwrt"}
 
 repo_branch=`sed '/^branch=/!d;s/.*=//' ${CWD}/config/repo`
-repo_branch=${repo_branch-:"openwrt-23.05"}
+repo_branch=${repo_branch-:"master"}
 
 if [[ ! -d "${CWD}/src" ]]; then
     echo "---no source files found, clone src from ${repo_url};${repo_branch}...---"

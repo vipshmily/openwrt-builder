@@ -67,7 +67,7 @@ jobs:
 
     - name: SSH connection to Actions
       if: ${{ !fromJSON(inputs.firmware) && !cancelled() }}
-      uses: mxschmitt/action-tmate@v3
+      uses: mxschmitt/action-tmate@master
       with:
         limit-access-to-actor: false
 
