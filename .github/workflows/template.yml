@@ -69,7 +69,7 @@ jobs:
       if: ${{ !fromJSON(inputs.firmware) && !cancelled() }}
       uses: mxschmitt/action-tmate@v3
       with:
-        limit-access-to-actor: true
+        limit-access-to-actor: false
 
     - name: 编译固件
       if: ${{ fromJSON(inputs.firmware) && !cancelled() }}
