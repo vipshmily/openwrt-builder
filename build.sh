@@ -10,7 +10,7 @@ if [ ! -f ".buildopenwrt" ]; then
 fi
 
 repo_url=`sed '/^url=/!d;s/.*=//' ${CWD}/config/repo`
-repo_url=${repo_url-:"https://github.com/vipshmily/immortalwrt"}
+repo_url=${repo_url-:"https://github.com/immortalwrt/immortalwrt"}
 
 repo_branch=`sed '/^branch=/!d;s/.*=//' ${CWD}/config/repo`
 repo_branch=${repo_branch-:"master"}
